@@ -13,7 +13,7 @@
       - Grouped Work Facets
       - Creating Grouped Works
       - Grouped Work Pages
-      - Manually grouping records
+      - [Manually grouping records](/Admin/HelpManual?page=Manually-grouping-records)
       - Ungrouping records
     - Browse Category Groups
       - Browse Categories
