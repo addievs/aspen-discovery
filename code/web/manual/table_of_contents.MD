@@ -120,6 +120,7 @@
   - Search Types
   - Facets
     - [Literary Forms](/Admin/HelpManual?page=Literary-Forms)
+    - [Audience](/Admin/HelpManual?page=Audience)
   - [Relevancy](/Admin/HelpManual?page=Search-Relevancy)
 - [User Lists](/Admin/HelpManual?page=User-Lists)
 - Patron Account
