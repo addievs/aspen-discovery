@@ -490,6 +490,16 @@ public class CarlXExportMain {
 				if (!getChangedItemsFromCarlXApi(beginTimeString, updatedItemIDs, createdItemIDs, deletedItemIDs)) {
 					//Halt execution
 					logEntry.incErrors("Failed to getChangedItemsFromCarlXApi, exiting");
+					//This happens due to bad data within CARL.X and the only fix is to skip the bad record by increasing the
+					//lastUpdateOfChangedRecords and trying again. We will increase the timeout by 30 seconds at a time.
+					if (indexingProfile.getLastUpdateOfChangedRecords() != 0) {
+						PreparedStatement updateVariableStmt = dbConn.prepareStatement("UPDATE indexing_profiles set lastUpdateOfChangedRecords = ? WHERE id = ?");
+						updateVariableStmt.setLong(1, indexingProfile.getLastUpdateOfChangedRecords() + 30);
+						updateVariableStmt.setLong(2, indexingProfile.getId());
+						updateVariableStmt.executeUpdate();
+						updateVariableStmt.close();
+						logEntry.addNote("Increased lastUpdateOfChangedRecords by 30 seconds to skip the bad record");
+					}
 					return totalChanges;
 				} else {
 					logger.info("Loaded updated items");
@@ -1284,19 +1294,19 @@ public class CarlXExportMain {
 	}
 
 	private static void getIDsFromNodeList(ArrayList<String> arrayOfIds, NodeList walkThroughMe) {
-		int l       = walkThroughMe.getLength();
+		int l = walkThroughMe.getLength();
 		for (int i = 0; i < l; i++) {
 			arrayOfIds.add(walkThroughMe.item(i).getTextContent());
 		}
 	}
 
+	//If we make this multi-threaded, will want to make the formatter non-static
+	private static final SimpleDateFormat itemInformationFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 	private static String formatDateFieldForMarc(String dateFormat, String date) {
 		String dateForMarc = null;
 		try {
-			String itemInformationDateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(itemInformationDateFormat);
-			dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-			Date marcDate = dateFormatter.parse(date);
+			itemInformationFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+			Date marcDate = itemInformationFormatter.parse(date);
 			SimpleDateFormat marcDateCreatedFormat = new SimpleDateFormat(dateFormat);
 			dateForMarc = marcDateCreatedFormat.format(marcDate);
 		} catch (Exception e) {
@@ -1306,7 +1316,7 @@ public class CarlXExportMain {
 	}
 
 	private static void getIDsArrayListFromNodeList(NodeList walkThroughMe, ArrayList<String> idList) {
-		int l                = walkThroughMe.getLength();
+		int l = walkThroughMe.getLength();
 		for (int i = 0; i < l; i++) {
 			String itemID = walkThroughMe.item(i).getTextContent();
 			idList.add(itemID);

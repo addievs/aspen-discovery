@@ -4257,6 +4257,21 @@ var AspenDiscovery = (function(){
 			return false;
 		},
 
+		changeSort: function(){
+			var url = window.location.href;
+			if (url.match(/[&?]sort=([A-Za-z_]|%20)+/)) {
+				url = url.replace(/sort=([A-Za-z_]|%20)+/, "sort=" + $("#sort").val());
+			} else {
+				if (url.indexOf("?", 0) > 0){
+					url = url+ "&sort=" + $("#sort").val();
+				}else{
+					url = url+ "?sort=" + $("#sort").val();
+				}
+			}
+			window.location.href = url;
+			return false;
+		},
+
 		closeLightbox: function(callback){
 			var modalDialog = $("#modalDialog");
 			if (modalDialog.is(":visible")){
@@ -6033,10 +6048,6 @@ AspenDiscovery.Account = (function(){
 }(AspenDiscovery.Account || {}));
 AspenDiscovery.Admin = (function(){
 	return {
-		showRecordGroupingNotes: function (id){
-			AspenDiscovery.Account.ajaxLightbox("/Admin/AJAX?method=getRecordGroupingNotes&id=" + id, true);
-			return false;
-		},
 		showReindexNotes: function (id){
 			AspenDiscovery.Account.ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id, true);
 			return false;
@@ -6170,6 +6181,111 @@ AspenDiscovery.Admin = (function(){
 				AspenDiscovery.showMessage("Error", "Please select only two objects to compare");
 				return false;
 			}
+		},
+		showBatchUpdateFieldForm: function(module, toolName, batchUpdateScope) {
+			var selectedObjects = $('.selectedObject:checked');
+			if (batchUpdateScope === 'all' || selectedObjects.length >= 1){
+				var url = Globals.path + "/Admin/AJAX";
+				var params =  {
+					method : 'getBatchUpdateFieldForm',
+					moduleName : module,
+					toolName: toolName,
+					batchUpdateScope: batchUpdateScope
+				};
+				$.getJSON(url, params,
+					function(data) {
+						if (data.success) {
+							AspenDiscovery.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+						} else {
+							$("#releaseNotes").html("Error + " + data.message);
+						}
+					}
+				).fail(AspenDiscovery.ajaxFail);
+				return false;
+			}else{
+				AspenDiscovery.showMessage("Error", "Please select at least one object to update");
+				return false;
+			}
+		},
+		processBatchUpdateFieldForm: function(module, toolName, batchUpdateScope){
+			var selectedObjects = $('.selectedObject:checked');
+			if (batchUpdateScope === 'all' || selectedObjects.length >= 1){
+				var url = Globals.path + "/Admin/AJAX";
+				var selectedField = $('#fieldSelector').val();
+				var selectedFieldControl = $('#' + selectedField);
+				var newValue;
+				if (selectedFieldControl.prop("type") === undefined){
+					selectedFieldControl = $('#' + selectedField + "Select");
+				}
+				if (selectedFieldControl.prop("type") === 'checkbox'){
+					newValue = selectedFieldControl.prop("checked") ? 1 : 0;
+				}else {
+					newValue = selectedFieldControl.val();
+				}
+				var params =  {
+					method : 'doBatchUpdateField',
+					moduleName : module,
+					toolName: toolName,
+					batchUpdateScope: batchUpdateScope,
+					selectedField: selectedField,
+					newValue: newValue
+				};
+				selectedObjects.each(function(){
+					params[$(this).prop('name')] = 'on';
+				});
+				$.getJSON(url, params,
+					function(data) {
+						if (data.success) {
+							AspenDiscovery.showMessage(data.title, data.message, true, true);
+						} else {
+							AspenDiscovery.showMessage(data.title, data.message);
+						}
+					}
+				).fail(AspenDiscovery.ajaxFail);
+				return false;
+			}else{
+				AspenDiscovery.showMessage("Error", "Please select at least one object to update");
+				return false;
+			}
+		},
+		addFilterRow: function(module, toolName) {
+			var url = Globals.path + "/Admin/AJAX";
+			var params =  {
+				method : 'getFilterOptions',
+				moduleName : module,
+				toolName: toolName
+			};
+			$.getJSON(url, params,
+				function(data) {
+					if (data.success) {
+						AspenDiscovery.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+					} else {
+						AspenDiscovery.showMessage(data.title, data.message);
+					}
+				}
+			).fail(AspenDiscovery.ajaxFail);
+			return false;
+		},
+		getNewFilterRow: function(module, toolName) {
+			var url = Globals.path + "/Admin/AJAX";
+			var selectedFilter = $("#fieldSelector").val();
+			var params =  {
+				method : 'getNewFilterRow',
+				moduleName : module,
+				toolName: toolName,
+				selectedFilter: selectedFilter
+			};
+			$.getJSON(url, params,
+				function(data) {
+					if (data.success) {
+						$('#activeFilters').append(data.filterRow);
+						AspenDiscovery.closeLightbox();
+					} else {
+						AspenDiscovery.showMessage(data.title, data.message);
+					}
+				}
+			).fail(AspenDiscovery.ajaxFail);
+			return false;
 		},
 		displayReleaseNotes: function() {
 			var url = Globals.path + "/Admin/AJAX";
@@ -9171,6 +9287,17 @@ AspenDiscovery.OverDrive = (function(){
 					AspenDiscovery.showMessage('Error', data.message);
 				}else{
 					$("#staffViewPlaceHolder").replaceWith(data.staffView);
+				}
+			});
+		},
+
+		showPreview: function (overdriveId, formatId, sampleNumber) {
+			var url = Globals.path + "/OverDrive/" + overdriveId + "/AJAX?method=getPreview&formatId=" + formatId + "&sampleNumber=" + sampleNumber;
+			$.getJSON(url, function (data){
+				if (data.success){
+					AspenDiscovery.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}else{
+					AspenDiscovery.showMessage('Error', data.message);
 				}
 			});
 		}

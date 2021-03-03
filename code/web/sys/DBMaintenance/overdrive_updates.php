@@ -319,6 +319,14 @@ function getOverDriveUpdates()
 			]
 		],
 
+		'overdrive_module_add_settings' => [
+			'title' => 'Add Settings to OverDrive module',
+			'description' => 'Add Settings to OverDrive module',
+			'sql' => [
+				"UPDATE modules set settingsClassPath = '/sys/OverDrive/OverDriveSetting.php', settingsClassName = 'OverDriveSetting' WHERE name = 'OverDrive'"
+			]
+		],
+
 		'overdrive_part_count' => [
 			'title' => 'OverDrive part count',
 			'description' => 'Increase the size of the partCount field',
@@ -356,6 +364,16 @@ function getOverDriveUpdates()
 			]
 		],
 
+		'overdrive_availability_update_indexes' => [
+			'title' => 'Update OverDrive Availability Indexes',
+			'description' => 'Fix indexes for overdrive availability to include settings',
+			'sql' => [
+				'ALTER TABLE overdrive_api_product_availability drop index productId',
+				'ALTER TABLE overdrive_api_product_availability drop index productId_2',
+				'ALTER TABLE overdrive_api_product_availability ADD UNIQUE (productId, settingId, libraryId)'
+			]
+		],
+
 		'overdrive_usage_add_instance' => [
 			'title' => 'OverDrive Usage - Instance Information',
 			'description' => 'Add Instance Information to OverDrive Usage stats',
@@ -377,7 +395,44 @@ function getOverDriveUpdates()
 				'ALTER TABLE overdrive_scopes ADD COLUMN clientSecret VARCHAR(50)',
 				'ALTER TABLE overdrive_scopes ADD COLUMN clientKey VARCHAR(50)',
 			]
-		]
+		],
+
+		'overdrive_allow_large_deletes' => [
+			'title' => 'OverDrive - Allow Large Deletes',
+			'description' => 'Allow the OverDrive process to delete more than 500 records or 5% of the collection',
+			'sql' => [
+				'ALTER TABLE overdrive_settings ADD COLUMN allowLargeDeletes TINYINT(1) DEFAULT 0'
+			]
+		],
+
+		'track_overdrive_stats' => array(
+			'title' => 'OverDrive Stats',
+			'description' => 'Add a table to track how OverDrive is used.',
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE overdrive_stats (
+					id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+					instance VARCHAR(100),
+					year INT(4) NOT NULL,
+					month INT(2) NOT NULL,
+					numCheckouts INT(11) NOT NULL DEFAULT 0,
+					numFailedCheckouts INT(11) NOT NULL DEFAULT 0,
+					numRenewals INT(11) NOT NULL DEFAULT 0,
+					numEarlyReturns INT(11) NOT NULL DEFAULT 0,
+					numHoldsPlaced INT(11) NOT NULL DEFAULT 0,
+					numFailedHolds INT(11) NOT NULL DEFAULT 0,
+					numHoldsCancelled INT(11) NOT NULL DEFAULT 0,
+					numHoldsFrozen INT(11) NOT NULL DEFAULT 0,
+					numHoldsThawed INT(11) NOT NULL DEFAULT 0,
+					numDownloads INT(11) NOT NULL DEFAULT 0,
+					numPreviews INT(11) NOT NULL DEFAULT 0, 
+					numOptionsUpdates INT(11) NOT NULL DEFAULT 0, 
+					numApiErrors INT(11) NOT NULL DEFAULT 0,
+					numConnectionFailures INT(11) NOT NULL DEFAULT 0
+				) ENGINE = InnoDB",
+				"ALTER TABLE overdrive_stats ADD INDEX (instance, year, month)",
+			),
+		),
 	);
 }
 

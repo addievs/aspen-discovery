@@ -2406,7 +2406,7 @@ class MyAccount_AJAX extends JSON_Action
 							$finesPaid .= '|' . $fineAmount;
 							$finePayment = 1;
 						} else {
-							if ($ils == 'CarlX') { // CarlX SIP2 Fee Paid requires amount // this is not working to write the | $fineAmount 2021 01 27
+							if ($ils == 'CarlX') { // CarlX SIP2 Fee Paid requires amount 
 								$finesPaid .= '|' . $fineAmount;
 							}
 						}
@@ -2623,7 +2623,7 @@ class MyAccount_AJAX extends JSON_Action
 		$paymentRequestUrl .= "?ReferenceID=".$payment->id;
 		$paymentRequestUrl .= "&PaymentType=CC";
 		$paymentRequestUrl .= "&TotalAmount=".$payment->totalPaid;
-		$paymentRequestUrl .= "&PaymentRedirectUrl=".$configArray['Site']['url'] . '/MyAccount/MSBReturn';
+		$paymentRequestUrl .= "&PaymentRedirectUrl=".$configArray['Site']['url'] . '/MyAccount/Fines';
 		return ['success' => true, 'message' => 'Redirecting to payment processor', 'paymentRequestUrl' => $paymentRequestUrl];
 	}
 

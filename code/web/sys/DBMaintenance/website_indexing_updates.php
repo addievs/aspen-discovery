@@ -117,6 +117,15 @@ function getWebsiteIndexingUpdates()
 			]
 		],
 
+		'web_builder_add_settings' => [
+			'title' => 'Add Settings to Web Builder module',
+			'description' => 'Add Settings to Web Builder module',
+			'sql' => [
+				"UPDATE modules set settingsClassPath = '/sys/WebsiteIndexing/WebsiteIndexSetting.php', settingsClassName = 'WebsiteIndexSetting' WHERE name = 'Web Indexer'"
+			]
+		],
+
+
 		'web_indexer_add_title_expression' =>[
 			'title' => 'Web Indexer add title expression',
 			'description' => 'Add a regular expression to extract titles from',
@@ -158,6 +167,15 @@ function getWebsiteIndexingUpdates()
 					UNIQUE (settingId, locationId)
 				) ENGINE = InnoDB'
 			]
-		]
+		],
+
+		'web_indexer_max_pages_to_index' => [
+			'title' => 'Web Indexer add a maximum number of pages to index',
+			'description' => 'Add a maximum number of pages to index for website indexing settings',
+			'sql' => [
+				'ALTER TABLE website_indexing_settings ADD COLUMN maxPagesToIndex INT(11) DEFAULT 2500'
+			]
+		],
+
 	);
 }
